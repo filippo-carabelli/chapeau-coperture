@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./cop:*)",
+      "Bash(cop.cmd:*)",
+      "Bash(.\\cop.cmd:*)",
+      "WebSearch",
+      "WebFetch",
+      "Read(./lavori/**)",
+      "Edit(./lavori/**)",
+      "Read(./revisione/**)"
+    ]
+  }
+}

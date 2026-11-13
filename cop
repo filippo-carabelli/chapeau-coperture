@@ -1,0 +1,4 @@
+#!/bin/sh
+# Lancia gli strumenti del progetto con il loro ambiente Python.
+DIR="$(cd "$(dirname "$0")" && pwd)"
+PYTHONPATH="$DIR" exec "$DIR/.venv/bin/python" -m chapeau "$@"

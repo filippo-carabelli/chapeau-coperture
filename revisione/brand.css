@@ -1,0 +1,27 @@
+/* Identità Chapeau (dal logotipo ufficiale Chapeau_logotype_fullcolor_rgb):
+   nero, bianco e giallo #FFDE00; ombra piena nera come nelle lettere del logo.
+   Solo questo file e logo.svg definiscono l'aspetto della pagina di revisione. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&display=swap");
+
+:root {
+  --brand-ink: #000000;          /* testo principale */
+  --brand-paper: #f7f6f1;        /* sfondo pagina */
+  --brand-card: #ffffff;         /* sfondo schede */
+  --brand-accent: #000000;       /* bottoni principali, etichette */
+  --brand-accent-ink: #ffffff;   /* testo sopra il nero */
+  --brand-yellow: #ffde00;       /* giallo Chapeau (cappellino del logo) */
+  --brand-header-bg: #ffde00;    /* fascia in alto */
+  --brand-header-ink: #000000;
+  --brand-muted: #5f5d57;        /* testo secondario */
+  --brand-line: #000000;         /* bordi principali */
+  --brand-line-soft: #e4e1d8;    /* bordi interni */
+  --brand-shadow: 6px 6px 0 #000; /* ombra piena, come il logo */
+  --ok: #1d7a45;
+  --ok-soft: #e3f3e8;
+  --no: #c23a22;
+  --no-soft: #fbe6e1;
+  --font-title: "Archivo", "Arial Black", "Helvetica Neue", sans-serif;
+  --font-text: "Archivo", -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 16px;
+}

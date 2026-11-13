@@ -1,0 +1,8 @@
+.venv/
+config.local.json
+lavori/
+stile_chapeau/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/settings.local.json

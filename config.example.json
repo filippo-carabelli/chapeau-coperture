@@ -1,0 +1,11 @@
+{
+  "nome": "Fil",
+  "edizione": "studio",
+  "versione_resolve": "21.1.2",
+  "resolve_python": "/Applications/DaVinci Resolve/DaVinci Resolve.app/Contents/Applications/ResolvePython",
+  "cartella_memoria": "~/Library/CloudStorage/GoogleDrive-.../Il mio Drive/Chapeau/stile_chapeau",
+  "cartella_lavori": "",
+  "cartella_export": "~/Documents/Chapeau Coperture/Export",
+  "lingua": "it",
+  "whisper": {"motore": "mlx", "modello": "large-v3-turbo"}
+}

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coperture · Chapeau</title>
+<link rel="stylesheet" href="brand.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--brand-paper); color: var(--brand-ink); font: 15px/1.5 var(--font-text); }
+  a { color: inherit; }
+  header.top { position: sticky; top: 0; z-index: 5; background: var(--brand-header-bg); color: var(--brand-header-ink); border-bottom: 3px solid var(--brand-ink); }
+  .top-in { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
+  .logo { height: 44px; display: flex; align-items: center; }
+  .logo img { height: 100%; width: auto; }
+  .logo .wordmark { font: 600 22px/1 var(--font-title); letter-spacing: .14em; }
+  .top h1 { font: 900 20px/1 var(--font-title); margin: 0; padding: 7px 12px; background: var(--brand-ink); color: var(--brand-yellow); border-radius: 8px; letter-spacing: .02em; text-transform: uppercase; }
+  .top .meta { margin-left: auto; font-size: 13px; font-weight: 600; text-align: right; }
+  main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 140px; }
+  .intro { display: flex; gap: 24px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; margin-bottom: 22px; }
+  .intro h2 { font: 900 36px/1.1 var(--font-title); margin: 0 0 6px; letter-spacing: -.01em; }
+  .intro p { margin: 0; color: var(--brand-muted); max-width: 640px; }
+  .done-list { background: var(--brand-card); border: 2px solid var(--brand-line); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 22px; font-size: 14px; }
+  .done-list summary { cursor: pointer; color: var(--brand-muted); }
+  .marker { background: var(--brand-card); border: 2px solid var(--brand-line); border-radius: var(--radius); margin-bottom: 34px; overflow: hidden; box-shadow: var(--brand-shadow); }
+  .marker.ok { box-shadow: 6px 6px 0 var(--ok); }
+  .mhead { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: start; padding: 18px 22px; border-bottom: 2px solid var(--brand-line); }
+  .tc { font: 700 15px/1 var(--font-mono); padding: 9px 11px; border-radius: 8px; background: var(--brand-yellow); border: 2px solid var(--brand-ink); white-space: nowrap; }
+  .tipo { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; background: var(--brand-accent); color: var(--brand-accent-ink); margin-bottom: 6px; }
+  .capito { font: 800 20px/1.3 var(--font-title); }
+  .capito small { display: block; font: 13px/1.4 var(--font-text); color: var(--brand-muted); margin-top: 4px; }
+  .mstate { font-size: 13px; color: var(--brand-muted); text-align: right; white-space: nowrap; }
+  .mstate.ok { color: var(--ok); font-weight: 600; }
+  .props { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+  .prop { padding: 18px 22px; border-right: 1px solid var(--brand-line-soft); display: flex; flex-direction: column; gap: 10px; transition: background .15s; }
+  .prop:last-child { border-right: 0; }
+  .prop.si { background: var(--ok-soft); }
+  .prop.no { background: var(--no-soft); }
+  .rank { font: 800 12px/1 var(--font-text); color: var(--brand-muted); letter-spacing: .08em; text-transform: uppercase; }
+  .media { position: relative; aspect-ratio: 16/9; background: #111; border-radius: 10px; overflow: hidden; }
+  .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .media iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .media .dots { position: absolute; bottom: 8px; left: 0; right: 0; display: flex; gap: 5px; justify-content: center; }
+  .media .dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.45); }
+  .media .dots i.on { background: #fff; }
+  .media .play { position: absolute; right: 8px; top: 8px; background: rgba(0,0,0,.65); color: #fff; border: 0; border-radius: 99px; padding: 6px 12px; font: 600 12px var(--font-text); cursor: pointer; }
+  .media.empty { display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 13px; }
+  .ptitle { font-weight: 600; line-height: 1.3; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; padding: 3px 8px; border-radius: 6px; background: var(--brand-paper); border: 1px solid var(--brand-line-soft); }
+  .chip.int { font-family: var(--font-mono); font-weight: 600; }
+  .chip.epoca { background: var(--brand-yellow); border-color: var(--brand-ink); font-weight: 600; }
+  .chip.logo { background: #fff; border: 1px dashed var(--brand-ink); }
+  .why { color: var(--brand-muted); font-size: 14px; }
+  blockquote { margin: 0; padding: 10px 12px; border-left: 3px solid var(--brand-accent); background: var(--brand-paper); border-radius: 0 8px 8px 0; font-size: 14px; }
+  blockquote .tr { display: block; color: var(--brand-muted); margin-top: 6px; }
+  .link { font-size: 13px; word-break: break-all; color: var(--brand-muted); }
+  .yn { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; }
+  .btn { font: 800 14px var(--font-text); border-radius: 10px; padding: 10px 16px; border: 2px solid var(--brand-line); background: var(--brand-card); color: var(--brand-ink); cursor: pointer; }
+  .btn:hover { border-color: var(--brand-ink); }
+  .btn.si.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .btn.no.on { background: var(--no); border-color: var(--no); color: #fff; }
+  .yn .btn { flex: 1; }
+  .reasons { display: none; flex-direction: column; gap: 8px; }
+  .prop.no .reasons { display: flex; }
+  .rchips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rchip { font: 13px var(--font-text); padding: 5px 10px; border-radius: 99px; border: 1px solid var(--no); background: transparent; color: var(--no); cursor: pointer; }
+  .rchip.on { background: var(--no); color: #fff; }
+  input[type=text], input[type=url] { font: 14px var(--font-text); padding: 9px 11px; border-radius: 8px; border: 1px solid var(--brand-line); background: var(--brand-card); color: var(--brand-ink); width: 100%; }
+  .mfoot { display: flex; gap: 10px; align-items: center; padding: 14px 22px; border-top: 2px solid var(--brand-line); background: var(--brand-paper); flex-wrap: wrap; }
+  .mfoot label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .mfoot input[type=url] { flex: 2; min-width: 220px; }
+  .mfoot input[type=text] { flex: 1; min-width: 160px; }
+  .added { width: 100%; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+  .added div { display: flex; gap: 8px; align-items: center; }
+  .x { border: 0; background: none; color: var(--no); cursor: pointer; font-size: 16px; }
+  .skip { margin-left: auto; font-size: 13px; color: var(--brand-muted); display: flex; gap: 6px; align-items: center; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--brand-card); border-top: 3px solid var(--brand-line); z-index: 6; }
+  .bar-in { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .progress { font-size: 14px; }
+  .progress b { font-size: 18px; }
+  .final { display: flex; gap: 8px; align-items: center; font-size: 14px; margin-left: auto; }
+  .btn.confirm { background: var(--brand-yellow); color: var(--brand-ink); border-color: var(--brand-ink); padding: 12px 30px; font-size: 16px; box-shadow: 4px 4px 0 var(--brand-ink); }
+  .btn.confirm:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--brand-ink); }
+  .overlay { position: fixed; inset: 0; background: rgba(20,18,16,.72); display: none; align-items: center; justify-content: center; z-index: 10; padding: 16px; }
+  .overlay.show { display: flex; }
+  .overlay .box { background: var(--brand-card); border: 3px solid var(--brand-ink); box-shadow: 8px 8px 0 var(--brand-yellow); border-radius: var(--radius); padding: 32px 36px; max-width: 460px; text-align: center; }
+  .overlay h3 { font: 900 28px var(--font-title); margin: 0 0 8px; }
+  .err { color: var(--no); }
+  @media (max-width: 980px) {
+    .marker { box-shadow: 4px 4px 0 var(--brand-ink); }
+    .props { grid-template-columns: 1fr; }
+    .prop { border-right: 0; border-bottom: 1px solid var(--brand-line); }
+    .mhead { grid-template-columns: 1fr; }
+    .mstate { text-align: left; }
+    .top .meta { display: none; }
+    main, .top-in, .bar-in { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo"><img src="logo.svg" alt="Chapeau" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'wordmark',textContent:'CHAPEAU'}))"></div>
+  <h1>Coperture</h1>
+  <div class="meta" id="meta"></div>
+</div></header>
+
+<main>
+  <div class="intro">
+    <div>
+      <h2 id="titolo">Caricamento…</h2>
+      <p>Per ogni proposta premi <b>Sì</b> o <b>No</b>. Se dici No, scegli il motivo: serve a migliorare le ricerche successive. Puoi aggiungere un link trovato da te. Alla fine premi <b>Conferma</b>.</p>
+    </div>
+  </div>
+  <div id="done"></div>
+  <div id="list"></div>
+</main>
+
+<div class="bar"><div class="bar-in">
+  <div class="progress" id="progress"></div>
+  <label class="final"><input type="checkbox" id="okFinale"> Ok finale: scrivi le coperture nei marker</label>
+  <button class="btn confirm" id="confirm">Conferma</button>
+</div></div>
+
+<div class="overlay" id="overlay"><div class="box">
+  <h3>Scelte salvate</h3>
+  <p id="overlayText">Torna su Claude Code: ci pensa lui.</p>
+</div></div>
+
+<script>
+const MOTIVI = ["fuori epoca", "brutta qualità", "non coerente", "watermark"];
+let D = null;          // dati dal server
+let S = {};            // scelte: {mid: {decisioni:{pid:{ok,motivi,commento}}, aggiunti:[], salta:false}}
+const KEY = () => `chapeau-cop:${D.lavoro}:r${D.round}`;
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") el.className = v; else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c !== null && c !== undefined && c !== false) el.append(c.nodeType ? c : document.createTextNode(c));
+  return el;
+};
+const save = () => { try { localStorage.setItem(KEY(), JSON.stringify(S)); } catch (e) {} };
+const ytId = u => { const m = String(u).match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/); return m ? m[1] : null; };
+const host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
+
+function st(mid) { return S[mid] ||= { decisioni: {}, aggiunti: [], salta: false }; }
+function markerOk(m) { const s = st(m.id); return s.salta || s.aggiunti.length > 0 || m.proposte.some(p => s.decisioni[p.pid]?.ok === true); }
+
+function media(m, p) {
+  const imgs = (p.anteprime || []).map(a => `/lavoro/${a}`);
+  if (!imgs.length && m.tipo === "articolo") return null;
+  const box = h("div", { class: "media" + (imgs.length ? "" : " empty") });
+  const yt = ytId(p.url);
+  if (!imgs.length) { box.textContent = m.tipo === "articolo" ? "Articolo" : "Nessuna anteprima"; }
+  else {
+    let i = 0;
+    const img = h("img", { src: imgs[0], alt: p.titolo || "", loading: "lazy" });
+    const dots = h("div", { class: "dots" }, imgs.map((_, k) => h("i", { class: k ? "" : "on" })));
+    box.append(img);
+    if (imgs.length > 1) {
+      box.append(dots);
+      const show = k => { i = k; img.src = imgs[k]; dots.querySelectorAll("i").forEach((d, j) => d.className = j === k ? "on" : ""); };
+      box.addEventListener("mousemove", e => { const r = box.getBoundingClientRect(); show(Math.min(imgs.length - 1, Math.floor((e.clientX - r.left) / r.width * imgs.length))); });
+    }
+  }
+  if (yt && m.tipo === "video") {
+    box.append(h("button", { class: "play", onclick: e => {
+      e.stopPropagation();
+      const s = Math.floor(p.inizio_s || 0), f = Math.ceil(p.fine_s || s + 5);
+      box.className = "media";
+      box.replaceChildren(h("iframe", { src: `https://www.youtube-nocookie.com/embed/${yt}?start=${s}&end=${f}&autoplay=1&rel=0`, allow: "autoplay; encrypted-media", allowfullscreen: "" }));
+    } }, "▶ Guarda l'intervallo"));
+  }
+  return box;
+}
+
+function proposal(m, p, k) {
+  const s = st(m.id), dec = s.decisioni[p.pid] || {};
+  const card = h("div", { class: "prop" + (dec.ok === true ? " si" : dec.ok === false ? " no" : "") });
+  const a = p.articolo;
+  const chips = h("div", { class: "chips" },
+    (p.fonte && !(a && a.testata)) && h("span", { class: "chip" }, p.fonte),
+    (p.inizio && p.fine) && h("span", { class: "chip int" }, `${p.inizio} – ${p.fine}`),
+    p.qualita && h("span", { class: "chip" }, p.qualita),
+    p.epoca && h("span", { class: "chip epoca" }, "Materiale d'epoca · Super Scale"),
+    p.logo_fonte && h("span", { class: "chip logo", title: "Logo dell'archivio in sovrimpressione" }, `Logo in sovrimpressione: ${p.logo_fonte}`),
+    (a && (a.testata || a.data)) && h("span", { class: "chip" }, [a.testata, a.data].filter(Boolean).join(" · ")));
+  const quote = a && a.frase ? h("blockquote", {}, `«${a.frase}»`, (a.traduzione && a.lingua !== "it") ? h("span", { class: "tr" }, `«${a.traduzione}»`) : null) : null;
+  const setDec = ok => {
+    const cur = s.decisioni[p.pid] || {};
+    s.decisioni[p.pid] = cur.ok === ok ? {} : { ...cur, ok, motivi: ok ? [] : (cur.motivi || []) };
+    save(); render();
+  };
+  const reasons = h("div", { class: "reasons" },
+    h("div", { class: "rchips" }, MOTIVI.map(r => h("button", { class: "rchip" + ((dec.motivi || []).includes(r) ? " on" : ""), onclick: () => {
+      const d = s.decisioni[p.pid]; d.motivi = d.motivi || [];
+      d.motivi = d.motivi.includes(r) ? d.motivi.filter(x => x !== r) : [...d.motivi, r]; save(); render();
+    } }, r))),
+    h("input", { type: "text", placeholder: "Altro motivo (facoltativo)", value: dec.commento || "", oninput: e => { s.decisioni[p.pid].commento = e.target.value; save(); } }));
+  card.append(...[
+    h("div", { class: "rank" }, k === 0 ? "Proposta 1 · la migliore" : `Proposta ${k + 1}`),
+    media(m, p),
+    h("div", { class: "ptitle" }, p.titolo || host(p.url)),
+    chips, quote,
+    p.perche && h("div", { class: "why" }, p.perche),
+    h("a", { class: "link", href: p.url, target: "_blank", rel: "noopener" }, `${host(p.url)} ↗`),
+    h("div", { class: "yn" },
+      h("button", { class: "btn si" + (dec.ok === true ? " on" : ""), onclick: () => setDec(true) }, "Sì"),
+      h("button", { class: "btn no" + (dec.ok === false ? " on" : ""), onclick: () => setDec(false) }, "No")),
+    reasons].filter(Boolean));
+  return card;
+}
+
+function markerEl(m) {
+  const s = st(m.id), ok = markerOk(m);
+  const url = h("input", { type: "url", placeholder: "Incolla un link trovato da te" });
+  const nota = h("input", { type: "text", placeholder: "Minutaggio o nota (facoltativo)" });
+  const add = () => { if (!url.value.trim()) return url.focus(); s.aggiunti.push({ url: url.value.trim(), nota: nota.value.trim() }); save(); render(); };
+  return h("section", { class: "marker" + (ok ? " ok" : ""), id: m.id },
+    h("div", { class: "mhead" },
+      h("div", { class: "tc" }, m.tc),
+      h("div", {}, h("span", { class: "tipo" }, m.tipo),
+        h("div", { class: "capito" }, m.capito || "—", m.nota_fil ? h("small", {}, `Nota del marker: ${m.nota_fil}`) : null)),
+      h("div", { class: "mstate" + (ok ? " ok" : "") }, ok ? (s.salta ? "Saltato" : "✓ Coperto") : "Da decidere")),
+    h("div", { class: "props" }, m.proposte.map((p, k) => proposal(m, p, k))),
+    h("div", { class: "mfoot" },
+      h("label", {}, "Aggiungi link tuo"), url, nota,
+      h("button", { class: "btn", onclick: add }, "Aggiungi"),
+      h("label", { class: "skip" }, h("input", { type: "checkbox", ...(s.salta ? { checked: "" } : {}), onchange: e => { s.salta = e.target.checked; save(); render(); } }), "Non serve copertura"),
+      s.aggiunti.length ? h("div", { class: "added" }, s.aggiunti.map((c, i) => h("div", {},
+        h("span", {}, "✓"), h("a", { href: c.url, target: "_blank", rel: "noopener" }, c.url), c.nota ? h("span", {}, `· ${c.nota}`) : null,
+        h("button", { class: "x", title: "Rimuovi", onclick: () => { s.aggiunti.splice(i, 1); save(); render(); } }, "×")))) : null));
+}
+
+function render() {
+  const y = scrollY;
+  $("#list").replaceChildren(...D.markers.map(markerEl));
+  const ok = D.markers.filter(markerOk).length;
+  const prev = (D.gia_approvati || []).length;
+  $("#progress").innerHTML = `<b>${ok}</b> di ${D.markers.length} marker coperti in questo giro` + (prev ? ` · ${prev} già fatti` : "");
+  scrollTo(0, y);
+}
+
+async function conferma() {
+  const btn = $("#confirm");
+  const pending = D.markers.filter(m => !markerOk(m)).length;
+  const noReason = D.markers.some(m => Object.values(st(m.id).decisioni).some(d => d.ok === false && !(d.motivi || []).length && !d.commento));
+  if (noReason && !window.confirm("Alcuni No non hanno un motivo: aiutano molto le prossime ricerche. Confermi lo stesso?")) return;
+  btn.disabled = true; btn.textContent = "Salvo…";
+  const body = { ok_finale: $("#okFinale").checked, confermato_il: new Date().toISOString(), markers: S };
+  try {
+    const r = await fetch("/conferma", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error(r.status);
+    try { localStorage.removeItem(KEY()); } catch (e) {}
+    $("#overlayText").textContent = body.ok_finale
+      ? "Ok finale ricevuto: Claude Code ora scrive le coperture nei marker. Puoi chiudere questa pagina."
+      : pending ? `Claude Code ora rifà la ricerca per ${pending} marker e ti riapre la pagina. Puoi chiudere questa pagina.`
+                : "Tutto coperto. Torna su Claude Code per l'ultimo passaggio. Puoi chiudere questa pagina.";
+    $("#overlay").classList.add("show");
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Conferma";
+    alert("Non riesco a salvare: Claude Code ha chiuso la pagina? Rilancia /coperture per riprendere.");
+  }
+}
+
+(async () => {
+  try {
+    D = await (await fetch("/dati")).json();
+  } catch (e) { $("#titolo").innerHTML = '<span class="err">Non trovo i dati: rilancia /coperture da Claude Code.</span>'; return; }
+  try { S = JSON.parse(localStorage.getItem(KEY()) || "{}"); } catch (e) { S = {}; }
+  document.title = `Coperture · ${D.timeline}`;
+  $("#titolo").textContent = D.timeline + (D.round > 1 ? ` · giro ${D.round}` : "");
+  $("#meta").textContent = [D.progetto, D.collaboratore].filter(Boolean).join(" · ");
+  if ((D.gia_approvati || []).length) {
+    $("#done").append(h("details", { class: "done-list" }, h("summary", {}, `${D.gia_approvati.length} marker già coperti nei giri precedenti`),
+      h("ul", {}, D.gia_approvati.map(g => h("li", {}, `${g.tc} · ${g.tipo} · ${g.scelte.join(", ")}`)))));
+  }
+  $("#confirm").addEventListener("click", conferma);
+  render();
+})();
+</script>
+</body>
+</html>
