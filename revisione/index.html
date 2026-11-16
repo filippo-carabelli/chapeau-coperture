@@ -147,7 +147,13 @@ const ytId = u => { const m = String(u).match(/(?:youtu\.be\/|v=|shorts\/|embed\
 const host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
 
 function st(mid) { return S[mid] ||= { decisioni: {}, aggiunti: [], salta: false }; }
-function markerOk(m) { const s = st(m.id); return s.salta || s.aggiunti.length > 0 || m.proposte.some(p => s.decisioni[p.pid]?.ok === true); }
+const srcKey = u => { const y = ytId(u); return y ? "yt:" + y : String(u || "").replace(/[?#].*$/, "").replace(/\/$/, "").toLowerCase(); };
+function sorgentiOk(m) {
+  const s = st(m.id), k = new Set(s.aggiunti.map(c => srcKey(c.url)));
+  m.proposte.forEach(p => { if (s.decisioni[p.pid]?.ok === true) k.add(srcKey(p.url)); });
+  return k.size;
+}
+function markerOk(m) { return st(m.id).salta || sorgentiOk(m) >= (m.servono || 1); }
 
 function media(m, p) {
   const imgs = (p.anteprime || []).map(a => `/lavoro/${a}`);
@@ -223,8 +229,11 @@ function markerEl(m) {
     h("div", { class: "mhead" },
       h("div", { class: "tc" }, m.tc),
       h("div", {}, h("span", { class: "tipo" }, m.tipo),
-        h("div", { class: "capito" }, m.capito || "—", m.nota_fil ? h("small", {}, `Nota del marker: ${m.nota_fil}`) : null)),
-      h("div", { class: "mstate" + (ok ? " ok" : "") }, ok ? (s.salta ? "Saltato" : "✓ Coperto") : "Da decidere")),
+        h("div", { class: "capito" }, m.capito || "—", m.nota_fil ? h("small", {}, `Nota del marker: ${m.nota_fil}`) : null),
+        (m.servono || 1) > 1 ? h("div", { class: "chips", style: "margin-top:8px" },
+          h("span", { class: "chip epoca" }, `Servono 2 video diversi · da coprire ${String(m.durata_s).replace(".", ",")} s`)) : null),
+      h("div", { class: "mstate" + (ok ? " ok" : "") }, ok ? (s.salta ? "Saltato" : "✓ Coperto")
+        : ((m.servono || 1) > 1 && sorgentiOk(m) === 1 ? "1 video su 2" : "Da decidere"))),
     h("div", { class: "props" }, m.proposte.map((p, k) => proposal(m, p, k))),
     h("div", { class: "mfoot" },
       h("label", {}, "Aggiungi link tuo"), url, nota,

@@ -54,8 +54,11 @@ altrimenti parto." Aspetta la risposta e applica le correzioni.
 ## 3. Ricerca (Fase 2)
 Per ogni marker lancia un subagente `ricercatore-coperture` (strumento Agent), fino a 5 in
 parallelo per volta. Nel prompt di ciascuno metti: nome lavoro, id marker, tipo, timecode,
-"cosa ho capito" approvato, nota di Fil, le frasi della trascrizione attorno al marker, eventuali
-scarti dei round precedenti con i motivi, e il riassunto della memoria di stile.
+"cosa ho capito" approvato, nota di Fil, le frasi della trascrizione attorno al marker, la
+**durata da coprire** e, se il contesto lo dice, "SERVONO 2 VIDEO DIVERSI", eventuali scarti dei
+round precedenti con i motivi, le coperture già usate in questo video e il riassunto della
+memoria di stile. Ricorda nel prompt di lanciare `./cop usate` prima di scrivere il risultato.
+Lancia i marker in ordine di timecode: così chi parte dopo vede già le proposte di chi ha finito.
 Ogni ricercatore scrive `lavori/<lavoro>/ricerca/<id>.json`. Mentre lavorano, aggiorna il
 collaboratore con una riga ogni tanto ("8 marker su 20 fatti").
 I ricercatori lavorano con Sonnet (più leggero; in una prova alla cieca ha retto il confronto con
@@ -64,8 +67,12 @@ Opus). Se il collaboratore chiede più qualità su un marker, o al secondo giro 
 ricercatore con `model: "opus"`. Ricorda ai ricercatori di cercare anche sugli archivi stock
 gratuiti (Pexels, Pixabay) e di dare sempre 3 proposte se esistono.
 
-Poi `./cop unisci <lavoro>`. Se segnala problemi (meno di 3 proposte, anteprime mancanti),
-rilancia il ricercatore solo per quei marker.
+Poi `./cop unisci <lavoro>`. Se segnala problemi (poche proposte, anteprime mancanti, doppioni
+di coperture già usate in un altro marker, un solo video sorgente quando ne servono 2), rilancia
+il ricercatore solo per quei marker dicendogli cosa sostituire. `unisci` toglie da solo i
+doppioni di coperture già approvate.
+Un marker che chiede 2 video diversi risulta coperto solo quando sono approvati almeno 2 video
+sorgente diversi.
 
 ## 4. Pagina di revisione (Fase 3)
 Lancia `./cop revisione <lavoro>` **in background** (run_in_background): apre da sola la pagina

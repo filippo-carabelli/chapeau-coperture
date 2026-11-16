@@ -27,6 +27,66 @@ def tipo_e_nota(name, note):
     return tipo, extra
 
 
+SOGLIA_DUE_VIDEO = 3.0   # oltre questi secondi di copertura servono 2 video diversi
+DURATA_MAX = 20.0
+
+
+def durata_copertura(m, successivi, fps):
+    """Quanto deve durare la copertura: la durata del marker se Fil l'ha allungato,
+    altrimenti fino al marker successivo (anche "fin qui copertura"), al massimo 20 s."""
+    if m.get("duration", 1) > 1:
+        return round(m["duration"] / fps, 1)
+    nxt = next((x for x in successivi if x["frame"] > m["frame"]), None)
+    if not nxt:
+        return None
+    return round(min((nxt["frame"] - m["frame"]) / fps, DURATA_MAX), 1)
+
+
+def chiave_video(url):
+    """Identifica il video/foto sorgente indipendentemente dai parametri dell'indirizzo."""
+    x = re.search(r"(?:youtu\.be/|v=|shorts/|embed/)([\w-]{11})", url or "")
+    if x:
+        return "yt:" + x.group(1)
+    return re.sub(r"[?#].*$", "", (url or "").strip()).rstrip("/").lower()
+
+
+def stessa_copertura(a, b):
+    """Stessa inquadratura: stesso sorgente e intervalli che si sovrappongono (o stessa foto)."""
+    if chiave_video(a.get("url")) != chiave_video(b.get("url")):
+        fa, fb = a.get("url_file"), b.get("url_file")
+        return bool(fa and fb and chiave_video(fa) == chiave_video(fb))
+    if a.get("inizio_s") is None or b.get("inizio_s") is None:
+        return True
+    a0, a1 = a["inizio_s"], a.get("fine_s", a["inizio_s"])
+    b0, b1 = b["inizio_s"], b.get("fine_s", b["inizio_s"])
+    return a0 < b1 and b0 < a1
+
+
+def coperto(m, st):
+    """Un marker è coperto quando ha abbastanza video DIVERSI approvati (o è saltato)."""
+    if st.get("saltato"):
+        return True
+    sorgenti = {chiave_video(p.get("url")) for p in st["approvati"]} | {chiave_video(c.get("url")) for c in st["aggiunti"]}
+    return len(sorgenti) >= m.get("servono", 1)
+
+
+def usate(job, escludi=None):
+    """Coperture già approvate o proposte in ALTRI marker dello stesso lavoro."""
+    d, mdata, stato = carica(job)
+    res = []
+    for m in mdata["markers"]:
+        if m["id"] == escludi:
+            continue
+        st = stato["markers"][m["id"]]
+        for p in st["approvati"]:
+            res.append({"marker": m["tc"], "stato": "approvata", **{k: p.get(k) for k in ("url", "inizio", "fine", "titolo")}})
+        r = read_json(d / "ricerca" / f"{m['id']}.json") or {}
+        if not st["chiuso"]:
+            for p in r.get("proposte", []):
+                res.append({"marker": m["tc"], "stato": "proposta", **{k: p.get(k) for k in ("url", "inizio", "fine", "titolo")}})
+    return res
+
+
 def crea(raw, fonte_audio=None):
     """raw: dict dal ponte Resolve o dal parser EDL -> nuova cartella lavoro."""
     name = f"{slug(raw['timeline'])}-{date.today().isoformat()}"
@@ -41,10 +101,13 @@ def crea(raw, fonte_audio=None):
     sh, sm, ss, sf = (int(x) for x in start.replace(";", ":").split(":"))
     start_frames = ((sh * 60 + sm) * 60 + ss) * round(fps) + sf
     markers, senza_tipo = [], []
-    for i, m in enumerate(sorted(raw["markers"], key=lambda x: x["frame"]), 1):
+    ordinati = sorted(raw["markers"], key=lambda x: x["frame"])
+    for i, m in enumerate(ordinati, 1):
         tipo, extra = tipo_e_nota(m.get("name"), m.get("note"))
+        durata = durata_copertura(m, ordinati[i:], fps)
         mk = {**m, "id": f"m{i:03d}", "tipo": tipo, "nota_fil": extra,
-              "tc": frames_to_tc(start_frames + m["frame"], fps)}
+              "tc": frames_to_tc(start_frames + m["frame"], fps), "durata_s": durata,
+              "servono": 2 if tipo == "video" and durata and durata > SOGLIA_DUE_VIDEO else 1}
         if m.get("custom") == "chapeau-coperture":
             mk["gia_fatto"] = True
         (markers if tipo else senza_tipo).append(mk)
@@ -85,12 +148,19 @@ def contesto(job, prima=45.0, dopo=20.0):
             righe.append(f"**Nota di Fil (ha la precedenza):** {m['nota_fil']}")
         if st.get("capito"):
             righe.append(f"Capito al round precedente: {st['capito']}")
+        if m.get("durata_s"):
+            righe.append(f"**Durata da coprire:** circa {m['durata_s']} s"
+                         + (" → SERVONO 2 VIDEO DIVERSI" if m.get("servono", 1) > 1 else ""))
         righe += [f"**Prima del marker:** {before or '(nessuna frase)'}", f"**Subito dopo:** {after or '(nessuna frase)'}"]
         for s in st["scartati"]:
             mot = ", ".join(s.get("motivi") or []) or "nessun motivo"
             com = f" — «{s['commento']}»" if s.get("commento") else ""
             righe.append(f"- SCARTATO: {s['url']} ({mot}){com}")
         righe.append("")
+    gia = [u for u in usate(job) if u["stato"] == "approvata"]
+    if gia:
+        righe += ["## Coperture già usate in questo video (non riproporle)"]
+        righe += [f"- {u['marker']}: {u['url']} {u.get('inizio') or ''}–{u.get('fine') or ''}" for u in gia]
     path = d / "contesto.md"
     path.write_text("\n".join(righe), encoding="utf-8")
     return path, len(da_fare(mdata, stato))
@@ -109,13 +179,22 @@ def unisci(job):
     rnd = stato["round"] + 1
     by_id = {m["id"]: m for m in mdata["markers"]}
     out, problemi = [], []
+    gia_usate = [(mm["tc"], p) for mm in mdata["markers"] for p in stato["markers"][mm["id"]]["approvati"]]
     for m in da_fare(mdata, stato):
         r = read_json(d / "ricerca" / f"{m['id']}.json")
         if not r:
             problemi.append(f"{m['id']}: manca ricerca/{m['id']}.json")
             continue
         props = []
-        for k, p in enumerate(r.get("proposte", [])[:3], 1):
+        massimo = 6 if m.get("servono", 1) > 1 else 3
+        tenute = []
+        for p in r.get("proposte", []):
+            doppio = next((tc for tc, q in gia_usate if stessa_copertura(p, q)), None)
+            if doppio:
+                problemi.append(f"{m['id']}: doppione di una copertura già usata o proposta a {doppio} ({p.get('url')}) — rifai")
+                continue
+            tenute.append(p)
+        for k, p in enumerate(tenute[:massimo], 1):
             pid = f"{m['id']}-r{rnd}-{k}"
             prev = []
             for a in p.get("anteprime", []):
@@ -129,11 +208,16 @@ def unisci(job):
             if not prev and not p.get("articolo"):
                 problemi.append(f"{pid}: nessuna anteprima")
             props.append({**p, "pid": pid, "anteprime": prev})
-        if len(props) < 3:
-            problemi.append(f"{m['id']}: solo {len(props)} proposte")
+        minimo = 4 if m.get("servono", 1) > 1 else 3
+        if len(props) < minimo:
+            problemi.append(f"{m['id']}: solo {len(props)} proposte (ne servono {minimo})")
+        if m.get("servono", 1) > 1 and len({chiave_video(p.get("url")) for p in props}) < 2:
+            problemi.append(f"{m['id']}: servono 2 video diversi ma le proposte vengono da un solo video")
+        gia_usate += [(m["tc"], p) for p in props]
         stato["markers"][m["id"]]["capito"] = r.get("capito", "")
         out.append({"id": m["id"], "tc": m["tc"], "tipo": m["tipo"], "nota_fil": m.get("nota_fil", ""),
-                    "capito": r.get("capito", ""), "proposte": props})
+                    "capito": r.get("capito", ""), "durata_s": m.get("durata_s"), "servono": m.get("servono", 1),
+                    "proposte": props})
     write_json(d / f"proposte_round{rnd}.json", {"round": rnd, "timeline": mdata["timeline"], "markers": out})
     write_json(d / "stato.json", stato)
     return d / f"proposte_round{rnd}.json", problemi, by_id
@@ -147,6 +231,7 @@ def registra(job, scelte):
     by_pid = {p["pid"]: {**p, "_mid": m["id"]} for m in proposte["markers"] for p in m["proposte"]}
     caps = {m["id"]: {"tipo": m["tipo"], "capito": m["capito"]} for m in proposte["markers"]}
     write_json(d / f"scelte_round{rnd}.json", scelte)
+    by_marker = {m["id"]: m for m in mdata["markers"]}
     for mid, s in (scelte.get("markers") or {}).items():
         st = stato["markers"].get(mid)
         if st is None:
@@ -163,7 +248,9 @@ def registra(job, scelte):
         for c in s.get("aggiunti") or []:
             if c.get("url"):
                 st["aggiunti"].append(c)
-        if st["approvati"] or st["aggiunti"] or s.get("salta"):
+        if s.get("salta"):
+            st["saltato"] = True
+        if coperto(by_marker[mid], st):
             st["chiuso"] = True
     stato["round"] = rnd
     stato["ok_finale"] = bool(scelte.get("ok_finale"))

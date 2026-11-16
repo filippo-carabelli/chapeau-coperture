@@ -75,6 +75,9 @@ def main():
             s.add_argument("--k", type=int, default=1, help="numero proposta (1-3)")
         if name == "foto":
             s.add_argument("--k", type=int, default=1)
+    s = sp.add_parser("usate", help="coperture già approvate o proposte negli altri marker")
+    s.add_argument("--lavoro")
+    s.add_argument("--id", help="marker da escludere (quello che stai cercando)")
     s = sp.add_parser("unisci")
     s.add_argument("lavoro", nargs="?")
     s = sp.add_parser("revisione", help="apre la pagina e aspetta «Conferma»")
@@ -156,6 +159,9 @@ def main():
             paths = media.anteprime_video(a.url, a.inizio, a.fine, base, f"{a.id}-p{a.k}")
             return jprint({"anteprime": paths})
         return jprint(media.foto(a.url, base, f"{a.id}-p{a.k}"))
+
+    if a.cmd == "usate":
+        return jprint(lavoro.usate(a.lavoro or _job(a), a.id))
 
     if a.cmd == "unisci":
         p, problemi, _ = lavoro.unisci(_job(a))

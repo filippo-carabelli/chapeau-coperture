@@ -149,6 +149,20 @@ def scan(url, out_dir, every=None, start=0.0, end=None, max_frames=40):
             "durata_video": secs_to_hms(duration) if duration else None, "fotogrammi": len(items)}
 
 
+def _formato(path, w, h):
+    """16:9 o 4:3, accorgendosi delle bande nere (un 4:3 dentro un file 16:9)."""
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path), "-vf", "cropdetect=limit=24:round=2:reset=0",
+                        "-frames:v", "80", "-f", "null", "-"], capture_output=True, text=True, timeout=120)
+    crops = re.findall(r"crop=(\d+):(\d+):\d+:\d+", r.stderr)
+    cw, ch = (int(crops[-1][0]), int(crops[-1][1])) if crops else (w, h)
+    if cw < 16 or ch < 16:
+        cw, ch = w, h
+    ratio = cw / ch
+    nome = "16:9" if ratio >= 1.7 else "4:3" if 1.25 <= ratio <= 1.55 else "verticale" if ratio < 1 else f"{ratio:.2f}:1"
+    bande = cw < w * 0.92 or ch < h * 0.92
+    return nome + (" (con bande nere nel file)" if bande else "")
+
+
 def verifica(url, at, out_dir, span=8.0, max_h=1080, prefix="clip"):
     """Analisi ravvicinata attorno ad `at`: 2 fotogrammi/s in alta qualità + rilevamento stacchi.
 
@@ -172,6 +186,7 @@ def verifica(url, at, out_dir, span=8.0, max_h=1080, prefix="clip"):
                             "-map", "[s]", "-f", "null", "-"], capture_output=True, text=True, timeout=240)
         with Image.open(sorted(fr_dir.glob("*.jpg"))[0]) as im:
             w, h = im.size
+        formato = _formato(tmp, w, h)
     finally:
         tmp.unlink(missing_ok=True)
     span = min(span, real_span - lead)
@@ -186,7 +201,7 @@ def verifica(url, at, out_dir, span=8.0, max_h=1080, prefix="clip"):
                          "inizio_s": round(start + x, 2), "fine_s": round(start + y, 2), "durata_s": round(y - x, 2)})
     items = [(p, secs_to_hms(start + i * 0.5)) for i, p in enumerate(frames)]
     sheet = contact_sheet(items, out_dir / f"{prefix}_verifica.jpg", cols=4, width=420)
-    return {"risoluzione": f"{w}x{h}", "finestra": [secs_to_hms(start), secs_to_hms(start + span)],
+    return {"risoluzione": f"{w}x{h}", "formato": formato, "finestra": [secs_to_hms(start), secs_to_hms(start + span)],
             "stacchi": [secs_to_hms(start + c) for c in cuts], "intervalli_continui": segs,
             "foglio_provini": sheet, "fotogrammi": [str(p) for p in frames],
             "nota": "Stacchi rilevati automaticamente: controlla comunque a vista dissolvenze, zoom e loghi."}
