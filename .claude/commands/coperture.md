@@ -58,6 +58,11 @@ parallelo per volta. Nel prompt di ciascuno metti: nome lavoro, id marker, tipo,
 scarti dei round precedenti con i motivi, e il riassunto della memoria di stile.
 Ogni ricercatore scrive `lavori/<lavoro>/ricerca/<id>.json`. Mentre lavorano, aggiorna il
 collaboratore con una riga ogni tanto ("8 marker su 20 fatti").
+I ricercatori lavorano con Sonnet (più leggero; in una prova alla cieca ha retto il confronto con
+Opus). Se il collaboratore chiede più qualità su un marker, o al secondo giro un marker difficile
+(materiale d'epoca, una persona precisa, un marchio raro) è ancora scoperto, rilancia quel solo
+ricercatore con `model: "opus"`. Ricorda ai ricercatori di cercare anche sugli archivi stock
+gratuiti (Pexels, Pixabay) e di dare sempre 3 proposte se esistono.
 
 Poi `./cop unisci <lavoro>`. Se segnala problemi (meno di 3 proposte, anteprime mancanti),
 rilancia il ricercatore solo per quei marker.

@@ -168,7 +168,8 @@ def registra(job, scelte):
     stato["round"] = rnd
     stato["ok_finale"] = bool(scelte.get("ok_finale"))
     write_json(d / "stato.json", stato)
-    memoria.aggiungi_eventi(memoria.eventi_da_scelte(d.name, caps, by_pid, scelte))
+    if not stato.get("prova"):  # i lavori di prova non sporcano la memoria condivisa
+        memoria.aggiungi_eventi(memoria.eventi_da_scelte(d.name, caps, by_pid, scelte))
     pend = [m for m in mdata["markers"] if not stato["markers"][m["id"]]["chiuso"]]
     return stato, pend
 
