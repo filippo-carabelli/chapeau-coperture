@@ -75,6 +75,18 @@ def main():
             s.add_argument("--k", type=int, default=1, help="numero proposta (1-3)")
         if name == "foto":
             s.add_argument("--k", type=int, default=1)
+    s = sp.add_parser("capito", help="salva il 'cosa ho capito' approvato per un marker")
+    s.add_argument("lavoro")
+    s.add_argument("id")
+    s.add_argument("testo")
+    s = sp.add_parser("mancanti", help="marker del giro corrente ancora da cercare")
+    s.add_argument("lavoro", nargs="?")
+    s = sp.add_parser("riproponi", help="ripropone le proposte già trovate per un marker")
+    s.add_argument("lavoro")
+    s.add_argument("id")
+    s = sp.add_parser("ricerca-auto", help="ricerca in automatico: si mette in pausa ai limiti e riprende")
+    s.add_argument("lavoro", nargs="?")
+    s.add_argument("--senza-revisione", action="store_true")
     s = sp.add_parser("usate", help="coperture già approvate o proposte negli altri marker")
     s.add_argument("--lavoro")
     s.add_argument("--id", help="marker da escludere (quello che stai cercando)")
@@ -159,6 +171,18 @@ def main():
             paths = media.anteprime_video(a.url, a.inizio, a.fine, base, f"{a.id}-p{a.k}")
             return jprint({"anteprime": paths})
         return jprint(media.foto(a.url, base, f"{a.id}-p{a.k}"))
+
+    if a.cmd == "capito":
+        lavoro.salva_capito(a.lavoro, a.id, a.testo)
+        return print(f"Salvato: {a.id}")
+    if a.cmd == "mancanti":
+        return jprint(lavoro.mancanti(_job(a)))
+    if a.cmd == "riproponi":
+        lavoro.riproponi(a.lavoro, a.id)
+        return print(f"{a.id}: verrà riproposto")
+    if a.cmd == "ricerca-auto":
+        from .automatico import ricerca_auto
+        return sys.exit(ricerca_auto(_job(a), revisione=not a.senza_revisione))
 
     if a.cmd == "usate":
         return jprint(lavoro.usate(a.lavoro or _job(a), a.id))

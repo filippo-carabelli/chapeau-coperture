@@ -121,6 +121,16 @@ Crea sulla Scrivania un'icona che apre Claude Code nella cartella giusta:
 Se il collaboratore usa l'app desktop di Claude, spiegagli invece di scegliere la cartella
 `chapeau-coperture` quando apre una nuova sessione Code.
 
+## 8b. Claude Code da terminale (per la ricerca automatica)
+La ricerca gira in automatico con il comando `claude` da terminale, che deve essere installato e
+collegato all'account anche se il collaboratore usa l'app desktop.
+- Se `claude` non esiste: installalo con l'installer ufficiale (Mac: `curl -fsSL https://claude.ai/install.sh | bash`;
+  Windows PowerShell: `irm https://claude.ai/install.ps1 | iex`).
+- Prova: `claude -p "Rispondi solo OK" --output-format json`. Se il risultato parla di login o
+  autenticazione, digli: «Apri l'app Terminale, scrivi `claude` e premi Invio, poi scrivi `/login`
+  e segui le istruzioni nel browser. Quando hai fatto, scrivi `/exit` e dimmi "fatto".»
+  Poi ripeti la prova.
+
 ## 9. Test finale
 1. `python3 setup/controlla.py` (Windows: `py -3.12 setup\controlla.py`): deve dire TUTTO PRONTO
    (le righe ATTENZIONE vanno spiegate ma non bloccano).

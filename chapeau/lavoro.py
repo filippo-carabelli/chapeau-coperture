@@ -1,6 +1,7 @@
 """Stato di un lavoro (una timeline): marker, contesto, round di proposte e scelte."""
 import re
 import shutil
+import time
 from datetime import date
 from pathlib import Path
 
@@ -87,6 +88,37 @@ def usate(job, escludi=None):
     return res
 
 
+def salva_capito(job, mid, testo):
+    """Il "cosa ho capito" approvato da Fil: resta nel lavoro anche se la sessione si interrompe."""
+    d, mdata, stato = carica(job)
+    if mid not in stato["markers"]:
+        raise SystemExit(f"Marker {mid} non trovato")
+    stato["markers"][mid]["capito_ok"] = testo
+    write_json(d / "stato.json", stato)
+
+
+def mancanti(job):
+    """Marker del giro corrente ancora senza risultato di ricerca (per riprendere dopo una pausa)."""
+    d, mdata, stato = carica(job)
+    dal = stato.get("ricerca_dal", 0)
+    res = []
+    for m in da_fare(mdata, stato):
+        f = d / "ricerca" / f"{m['id']}.json"
+        ok = f.exists() and f.stat().st_mtime >= dal and (read_json(f) or {}).get("proposte")
+        if not ok:
+            res.append(m["id"])
+    return res
+
+
+def riproponi(job, mid):
+    """Ripropone nel prossimo giro il risultato già trovato per questo marker, senza rifare la ricerca."""
+    d, _, _ = carica(job)
+    f = d / "ricerca" / f"{mid}.json"
+    if not f.exists():
+        raise SystemExit(f"Nessuna ricerca salvata per {mid}")
+    f.touch()
+
+
 def crea(raw, fonte_audio=None):
     """raw: dict dal ponte Resolve o dal parser EDL -> nuova cartella lavoro."""
     name = f"{slug(raw['timeline'])}-{date.today().isoformat()}"
@@ -136,6 +168,10 @@ def da_fare(mdata, stato):
 
 def contesto(job, prima=45.0, dopo=20.0):
     d, mdata, stato = carica(job)
+    giro = stato["round"] + 1
+    if stato.get("ricerca_round") != giro:  # nuovo giro di ricerca: i risultati validi sono quelli da ora in poi
+        stato["ricerca_round"], stato["ricerca_dal"] = giro, time.time()
+        write_json(d / "stato.json", stato)
     tr = read_json(d / "trascrizione.json", {"segments": []})["segments"]
     righe = [f"# Contesto marker — {mdata['timeline']} (round {stato['round'] + 1})", ""]
     for m in da_fare(mdata, stato):
@@ -146,7 +182,9 @@ def contesto(job, prima=45.0, dopo=20.0):
         righe += [f"## {m['id']} · {m['tc']} · {m['tipo'].upper()}"]
         if m.get("nota_fil"):
             righe.append(f"**Nota di Fil (ha la precedenza):** {m['nota_fil']}")
-        if st.get("capito"):
+        if st.get("capito_ok"):
+            righe.append(f"**Cosa serve (approvato da Fil):** {st['capito_ok']}")
+        elif st.get("capito"):
             righe.append(f"Capito al round precedente: {st['capito']}")
         if m.get("durata_s"):
             righe.append(f"**Durata da coprire:** circa {m['durata_s']} s"

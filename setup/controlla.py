@@ -100,6 +100,14 @@ def main():
          "Installa DaVinci Resolve e aprilo almeno una volta.")
     for tool in ("git", "ffmpeg", "ffprobe", "deno"):
         line(bool(shutil.which(tool)), tool, f"Installa {tool}.")
+    claude = shutil.which("claude") or (str(HOME / ".local/bin/claude") if (HOME / ".local/bin/claude").exists() else None)
+    if not claude:
+        line(False, "Claude Code da terminale (serve alla ricerca automatica)", "Installa Claude Code con l'installer ufficiale.")
+    else:
+        ok, out = run([claude, "-p", "Rispondi solo OK", "--output-format", "json"])
+        login = not re.search(r"(authenticat|/login|OAuth|API key)", out, re.I)
+        line(ok and login, "Claude Code da terminale collegato all'account",
+             "Apri il Terminale, scrivi claude, poi /login e segui le istruzioni nel browser.")
     venv_py = ROOT / (".venv/Scripts/python.exe" if WIN else ".venv/bin/python")
     line(venv_py.exists(), "ambiente Python del progetto (.venv)", "Crea .venv con Python 3.12 e installa requirements.txt.")
     cfg_path = ROOT / "config.local.json"
