@@ -126,6 +126,9 @@ La ricerca gira in automatico con il comando `claude` da terminale, che deve ess
 collegato all'account anche se il collaboratore usa l'app desktop.
 - Se `claude` non esiste: installalo con l'installer ufficiale (Mac: `curl -fsSL https://claude.ai/install.sh | bash`;
   Windows PowerShell: `irm https://claude.ai/install.ps1 | iex`).
+- Se `claude` esiste in `~/.local/bin` ma il Terminale risponde "command not found", aggiungi la
+  cartella al PATH (Mac: `echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc`), così il
+  collaboratore la ritrova anche nel suo Terminale.
 - Prova: `claude -p "Rispondi solo OK" --output-format json`. Se il risultato parla di login o
   autenticazione, digli: «Apri l'app Terminale, scrivi `claude` e premi Invio, poi scrivi `/login`
   e segui le istruzioni nel browser. Quando hai fatto, scrivi `/exit` e dimmi "fatto".»
